@@ -1,0 +1,33 @@
+###########################################################
+# Here is a cheat-sheet for this file as of MySQL 4.0.14
+# 2003-12-18 - tony_clayton@mitel.com
+#
+# 1. The mysqld binary reads options from the [mysqld] section,
+#    and then overrides those values with any passed-in
+#    arguments.
+#
+# 2. The mysqld_safe script reads options from the following
+#    sections in order, overriding any previous values with newer
+#    ones:
+#       [mysqld] [server] [mysqld_safe] [safe_mysqld]
+#    It then overrides those values with any passed-in
+#    arguments, and invokes the mysqld binary (see #1 above) with
+#    the resulting argument list.  
+#
+#    * The server and safe_mysqld sections are deprecated in
+#      favour of mysqld and mysqld_safe respectively.
+#
+# 3. The mysql or mysqld initscript reads options from the
+#    following sections in order, overriding any previous values
+#    with newer ones:
+#       [mysqld] [mysql_server] [mysql.server]
+#    It then overrides those values with any passed-in arguments,
+#    and invokes the mysqld_safe script (see #2 above) with the
+#    resulting argument list.
+#
+#    * The SMEServer doesn't have any need for initscript-only
+#      options, so we don't use mysql_server and mysql.server
+#      sections.
+# 
+###########################################################
+

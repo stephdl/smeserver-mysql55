@@ -1,0 +1,13 @@
+        create 600 mysql mysql
+        notifempty
+	daily
+        rotate 3
+        missingok
+        nocompress
+	sharedscripts
+	postrotate
+	# just if mysqld is really running
+	if test -n "`ps ax|grep mysql55|grep -v 'grep'`"; then
+		/opt/rh/mysql55/root/usr/bin/mysqladmin flush-logs
+	fi
+	endscript

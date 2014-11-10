@@ -1,0 +1,65 @@
+#!/bin/sh
+
+#----------------------------------------------------------------------
+# copyright (C) 2002 Mitel Networks Corporation
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+# 
+# Technical support for this program is available from Mitel Networks 
+# Please visit our web site www.mitel.com/sme/ for details.
+#----------------------------------------------------------------------
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 <start|restart>" 1>&2
+    exit 1
+fi
+# We should only do something if $1 is 'start'.
+if [ $1 != "start" ] && [ $1 != "restart" ]; then
+    exit 0
+fi
+
+for i in $(seq 1 10)
+do
+    if test -e /var/lib/mysql/mysql.sock
+    then
+	exit_value=0
+	HOME=/root
+	export HOME
+	for link in $(find /etc/e-smith/sql/init -type f -o -type l | sort)
+	do
+	    F=$(basename $link | sed s/S[0-9][0-9]//)
+	    case $F in
+		*.sql)
+		action "Loading $F into mysql" /usr/bin/mysql < $link && /bin/rm $link
+		;;
+		*)
+		action "Loading $F into mysql" $link && /bin/rm $link
+		;;
+	    esac
+	    # Record any failure for the final return value.
+	    if [ $? -ne 0 ]; then
+		exit_value=1
+	    fi
+	done 
+	exit $exit_value
+    fi
+    echo "Waiting for mysql to startup" >&2
+    sleep 2
+done
+
+exit 1

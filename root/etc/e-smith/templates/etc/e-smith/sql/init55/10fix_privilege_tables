@@ -1,0 +1,17 @@
+#!/bin/sh
+
+/opt/rh/mysql55/root/usr/bin/mysql -f mysql < /usr/share/mysql/mysql_fix_privilege_tables.sql
+P=$(cat /opt/rh/mysql55/root/var/run/mysqld/mysqld.pid)
+/bin/rm /opt/rh/mysql55/root/var/run/mysqld/mysqld.pid
+kill -TERM $P
+for i in $(seq 1 20);
+do
+  if [ -f /opt/rh/mysql55/root/var/run/mysqld/mysqld.pid ]
+  then
+      exit 0
+  fi
+  echo waiting for mysqld to restart
+  sleep 1
+done
+echo mysqld failed to restart
+exit 1

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+status=$(/sbin/e-smith/config getprop mysql55-mysqld status)
+if [ "$status" = "disabled" ]
+then
+    echo "mysql55-mysqld is disabled - no tables dumped" >&2
+    exit 0
+fi
+for db in $(/opt/rh/mysql55/root/usr/bin/mysql --socket=/var/lib/mysql/mysql55.sock -BNre "show databases;")
+do
+    /opt/rh/mysql55/root/usr/bin/mysqldump --socket=/var/lib/mysql/mysql55.sock --add-drop-table -QB "$db" -r /home/e-smith/db/mysql55/"$db".dump || exit 1
+done

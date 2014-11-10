@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec /bin/rm -f /home/e-smith/db/mysql55/*.dump

@@ -1,0 +1,4 @@
+
+{   # allow backwards-compatibility with safe_mysqld (mysql < 4.0)
+    -f "/opt/rh/mysql55/root/usr/bin/mysqld_safe" ? "[mysqld_safe]" : "[safe_mysqld]";
+}

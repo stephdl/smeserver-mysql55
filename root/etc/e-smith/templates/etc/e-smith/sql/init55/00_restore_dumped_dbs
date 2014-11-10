@@ -1,0 +1,19 @@
+#! /bin/sh
+
+( cat /home/e-smith/db/mysql55/mysql.dump ;
+  cat /service/mysql55-mysqld/set.password ) | /opt/rh/mysql55/root/usr/bin/mysql --socket=/var/lib/mysql/mysql55.sock || exit 1
+P=$(cat /opt/rh/mysql55/root/var/run/mysqld/mysqld.pid)
+/bin/rm /opt/rh/mysql55/root/var/run/mysqld/mysqld.pid
+kill -TERM $P
+for i in $(seq 1 20);
+do
+  if [ -f /opt/rh/mysql55/root/var/run/mysqld/mysqld.pid ]
+  then
+      /bin/rm /home/e-smith/db/mysql55/mysql.dump
+      exit 0
+  fi
+  echo waiting for mysql55-mysqld to restart
+  sleep 1
+done
+echo mysql55-mysqld failed to restart
+exit 1

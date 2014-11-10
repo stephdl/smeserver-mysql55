@@ -1,0 +1,3 @@
+#! /bin/sh
+
+cd /opt/rh/mysql55/root/var/lib/mysql && find . -type f | xargs rm -f

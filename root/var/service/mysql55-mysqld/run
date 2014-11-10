@@ -1,0 +1,36 @@
+#! /bin/sh
+
+# We have to re-enable SCL environment, because /sbin/service
+# clears almost all environment variables.
+# Since X_SCLS is cleared as well, we lose information about other
+# collections enabled.
+. /opt/rh/mysql55/service-environment
+for sclname in $MYSQL55_MYSQLD_SCLS_ENABLED ; do
+    . /opt/rh/$sclname/enable
+        export X_SCLS="$X_SCLS $sclname"
+        done
+        
+        # we want start daemon only inside "scl enable" invocation
+        if ! scl_enabled mysql55 ; then
+            echo "Collection mysql55 has to be listed in /opt/rh/mysql55/service-environment"
+                exit 1
+                fi
+                
+exec 2>&1
+if [ ! -f /opt/rh/mysql55/root/var/lib/mysql/mysql/user.frm ]
+then
+    setuidgid mysql sh /opt/rh/mysql55/root/usr/bin/mysql_install_db
+    /opt/rh/mysql55/root/usr/libexec/mysqld --bootstrap --user=mysql --skip-grant-tables --socket=/var/lib/mysql/mysql55.sock < ./set.password
+    if [ -f /home/e-smith/db/mysql55/mysql.dump ]
+    then
+	/sbin/e-smith/expand-template /etc/e-smith/sql/init55/00_restore_dumped_dbs
+    fi
+fi
+
+exec /opt/rh/mysql55/root/usr/libexec/mysqld \
+ --defaults-file=/opt/rh/mysql55/root/etc/my.cnf \
+  --basedir=/opt/rh/mysql55/root/usr \
+   --datadir=/opt/rh/mysql55/root/var/lib/mysql \
+    --user=mysql \
+     --pid-file=/opt/rh/mysql55/root/var/run/mysqld/mysqld.pid \
+      --socket=/var/lib/mysql/mysql55.sock

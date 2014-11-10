@@ -1,0 +1,2 @@
+#!/bin/bash
+/opt/rh/mysql55/root/usr/bin/mysql --socket=/var/lib/mysql/mysql55.sock

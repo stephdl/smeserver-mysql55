@@ -1,0 +1,61 @@
+#!/usr/bin/perl -w
+
+use strict;
+use esmith::config;
+use esmith::db;
+use esmith::util;
+
+my %conf;
+tie %conf, 'esmith::config';
+
+my $event = $ARGV[0];
+my $file = $ARGV[1];
+
+#---------------------------------------------------------------------------
+# Check the runlevel, if we're in runlevel 7, and we're being called from
+# bootstrap-console-save, then MySQL can't be running, so use bootstrap mode.
+# Otherwise, just use mysql to do a straight import.
+#---------------------------------------------------------------------------
+
+my $runlevel;
+
+open (RUNLEVEL, "-|", "/sbin/runlevel");
+(undef, $runlevel) = split(' ',<RUNLEVEL>);
+close RUNLEVEL;
+
+
+if ($runlevel ne '7' || $event eq 'bootstrap-console-save')
+{
+    my $pid = open(KID, "|-");
+    if (defined $pid)
+    {
+	if ($pid)
+	{
+	    open(SQL, "<$file");
+	    print KID foreach (<SQL>);
+	    close SQL;
+	    close(KID);
+	    waitpid $pid,0;	
+	}
+	else
+	{
+	    # Find our mysqld binary
+	    my $mysqld = "/opt/rh/mysql55/root/usr/libexec/mysqld --socket=/var/lib/mysql/mysql55.sock";
+	    if (-f "/opt/rh/mysql55/root/usr/sbin/mysqld") {
+		$mysqld = "/opt/rh/mysql55/root/usr/sbin/mysqld --socket=/var/lib/mysql/mysql55.sock";
+	    }
+	    # Hard-code user, since it is set in mysqld_safe currently.
+	    # See http://bugs.mysql.com/2163
+	    exec($mysqld, qw(--bootstrap --user=mysql --skip-grant-tables));
+	}
+    }
+    else
+    {
+	warn "Couldn't fork: $!";
+    }
+}
+else
+{
+    system("/usr/bin/mysql55 < $file");
+}
+exit(0);

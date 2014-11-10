@@ -1,0 +1,12 @@
+socket=/var/lib/mysql/mysql55.sock
+{
+    use esmith::ConfigDB;
+    my $db = esmith::ConfigDB->open or die "Couldn't open ConfigDB\n";
+    my $mysql55mysqld = $db->get('mysql55-mysqld') or die "not found";
+
+    my $localonly = $mysql55mysqld->prop(LocalNetworkingOnly) || "no";
+    $OUT = ($localonly eq 'yes') ? "skip-networking\n" : "# networking is enabled\n";
+    # define port
+    my $port = $mysql55mysqld->prop('port') || "3307";
+    $OUT .= ($localonly eq 'yes') ? "#no port as skip-networking\n" : "port=$port\n";
+}

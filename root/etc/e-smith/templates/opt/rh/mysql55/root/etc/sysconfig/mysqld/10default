@@ -1,0 +1,2 @@
+socket=/var/lib/mysql/mysql55.sock
+MYSQLD_OPTIONS=--skip-networking

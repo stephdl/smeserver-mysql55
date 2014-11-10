@@ -1,0 +1,56 @@
+#!/usr/bin/perl -w
+
+use esmith::Build::CreateLinks  qw(:all);
+
+#--------------------------------------------------
+# pre-backup actions
+#--------------------------------------------------
+my $event = "pre-backup";
+
+event_link("mysql55-delete-dumped-tables", $event, "10");
+event_link("mysql55-dump-tables", $event, "20");
+
+#--------------------------------------------------
+# post-backup actions
+#--------------------------------------------------
+$event = "post-backup";
+
+# Probably don't really need to do this
+event_link("mysql55-delete-dumped-tables", $event, "10");
+
+# When we do a restore, we want to start from a completely clean slate
+$event = "pre-restore";
+
+safe_symlink("stop", "root/etc/e-smith/events/$event/services2adjust/mysql55-mysqld");
+# Needs to be after shutdown of mysqld
+event_link("mysql55-delete-db-files", $event, "99");
+
+#--------------------------------------------------
+# actions for bootstrap-console-save event
+#--------------------------------------------------
+$event = "bootstrap-console-save";
+
+foreach (qw(
+	/opt/rh/mysql55/root/etc/my.cnf
+	/opt/rh/mysql55/root/etc/sysconfig/mysqld
+	/var/service/mysql55_mysqld/set.password
+	))
+#	/root/.my.cnf
+{
+    templates2events("$_", $event);
+}
+
+# Move all database dumps except for mysql.dump to sql/init
+event_link("mysql55-load-tables", $event, "40");
+
+#--------------------------------------------------
+# actions for timezone-update event
+#--------------------------------------------------
+$event = "timezone-update";
+
+safe_symlink("restart", "root/etc/e-smith/events/$event/services2adjust/mysql55-mysqld");
+
+templates2events("/etc/e-smith/sql/init55/10fix_privilege_tables", 
+	"bootstrap-console-save");
+
+safe_symlink("/opt/rh/mysql55/root/var/run/mysqld", "root/var/run/mysql55-mysqld");

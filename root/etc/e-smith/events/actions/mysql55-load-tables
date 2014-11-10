@@ -1,0 +1,15 @@
+#!/bin/sh
+
+status=$(/sbin/e-smith/config getprop mysql55-mysqld status)
+if [ "$status" = "disabled" ]
+then
+    echo "mysqld is disabled - no tables restored" >&2
+    exit 0
+fi
+if [ ! -f /opt/rh/mysql55/root/var/lib/mysql/user.frm ]
+then
+    for db in $(ls /home/e-smith/db/mysql55/*.dump 2> /dev/null | grep -v '/mysql.dump')
+    do
+        mv $db /etc/e-smith/sql/init55/01_$(basename $db .dump).sql
+    done
+fi
